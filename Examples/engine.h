@@ -18,6 +18,7 @@ public:
 	void UnloadWorld();
 	inline bool IsWorldLoaded() const { return m_WorldLoaded; }
 
+	void Resize(int width, int height);
 	void Update();
 	void Render() const;
 	void RenderGameObject(GameObject* gameObject, const glm::mat4& parentModelMatrix) const;

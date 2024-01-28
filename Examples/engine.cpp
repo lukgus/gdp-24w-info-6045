@@ -63,6 +63,11 @@ void Engine::UnloadWorld()
 	m_WorldLoaded = false;
 }
 
+void Engine::Resize(int width, int height)
+{
+	glViewport(0, 0, width, height);
+}
+
 void Engine::Update()
 {
 	if (!m_Initialized)
@@ -98,7 +103,7 @@ void Engine::Render() const
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
 
-	ShaderProgram* shader = m_World->m_ShaderPrograms[0];
+	ShaderProgram* shader = m_World->GetShaderProgram(0);
 	glUseProgram(shader->id);
 	glUniformMatrix4fv(shader->ProjectionMatrixUL, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 	glUniformMatrix4fv(shader->ViewMatrixUL, 1, GL_FALSE, glm::value_ptr(viewMatrix));
@@ -114,6 +119,11 @@ void Engine::Render() const
 }
 void Engine::RenderGameObject(GameObject* gameObject, const glm::mat4& parentModelMatrix) const
 {
+	if (gameObject->m_Visible == false)
+	{
+		return;
+	}
+
 	ShaderProgram* shader = gameObject->m_ShaderProgram;
 
 	// You can calculate this when a game object is set as "Dirty" 

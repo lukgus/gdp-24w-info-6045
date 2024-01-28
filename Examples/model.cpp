@@ -103,7 +103,7 @@ Model::Model(const char* filepath) {
 
 	unsigned int numVerticesInVertArray = mesh->mNumVertices;
 	unsigned int numIndicesInIndexArray = mesh->mNumFaces * 3;
-	sVertex_p4t4n4* pTempVertArray = new sVertex_p4t4n4[numIndicesInIndexArray * 2];
+	sVertex_p4t4n4b4* pTempVertArray = new sVertex_p4t4n4b4[numIndicesInIndexArray * 2];
 	GLuint* pIndexArrayLocal = new GLuint[numIndicesInIndexArray * 2];
 	int count = 0;
 	int index = 0;
@@ -114,6 +114,8 @@ Model::Model(const char* filepath) {
 		Vertices.push_back(glm::vec3(position.x, position.y, position.z));
 	}
 
+	std::vector<int> boneCount;
+	boneCount.resize(5, 0);
 	unsigned int vertArrayIndex = 0;
 	for (unsigned int faceIdx = 0; faceIdx != mesh->mNumFaces; faceIdx++)
 	{
@@ -130,6 +132,38 @@ Model::Model(const char* filepath) {
 			pTempVertArray[vertArrayIndex].Pos.y = position.y;
 			pTempVertArray[vertArrayIndex].Pos.z = position.z;
 			pTempVertArray[vertArrayIndex].Pos.w = 1.0f;
+
+			// Assign bone Index
+			// Less than 1 = 0
+			// Less than 2 = 1
+			// Less than 3 = 2
+			// Less than 4 = 3
+			// Else = 4
+			if (position.y < 1.f)
+			{
+				pTempVertArray[vertArrayIndex].BoneIds.x = 0;
+				boneCount[0]++;
+			}
+			else if (position.y < 2.f)
+			{
+				pTempVertArray[vertArrayIndex].BoneIds.x = 1;
+				boneCount[1]++;
+			}
+			else if (position.y < 3.f)
+			{
+				pTempVertArray[vertArrayIndex].BoneIds.x = 2;
+				boneCount[2]++;
+			}
+			else if (position.y < 4.f)
+			{
+				pTempVertArray[vertArrayIndex].BoneIds.x = 3;
+				boneCount[3]++;
+			}
+			else
+			{
+				pTempVertArray[vertArrayIndex].BoneIds.x = 4;
+				boneCount[4]++;
+			}
 
 			if (mesh->HasTextureCoords(0)) {
 				aiVector3D textureCoord = mesh->mTextureCoords[0][index];
@@ -158,6 +192,12 @@ Model::Model(const char* filepath) {
 		}
 	}
 
+	printf("Loading %s mesh\n", filepath);
+	for (int i = 0; i < 5; ++i)
+	{
+		printf("Bone Index %d has %d vertices\n", i, boneCount[i]);
+	}
+
 	NumTriangles = mesh->mNumFaces;
 
 	glGenVertexArrays(1, &Vbo);
@@ -166,23 +206,26 @@ Model::Model(const char* filepath) {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);	// bone index
 
 	glGenBuffers(1, &VertexBufferId);
 	glGenBuffers(1, &IndexBufferId);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBufferId);
 
-	unsigned int totalVertBufferSizeBYTES = numIndicesInIndexArray * sizeof(sVertex_p4t4n4); ;
+	unsigned int totalVertBufferSizeBYTES = numIndicesInIndexArray * sizeof(sVertex_p4t4n4b4);
 	glBufferData(GL_ARRAY_BUFFER, totalVertBufferSizeBYTES, pTempVertArray, GL_STATIC_DRAW);
 
-	unsigned int bytesInOneVertex = sizeof(sVertex_p4t4n4);
-	unsigned int byteOffsetToPosition = offsetof(sVertex_p4t4n4, Pos);
-	unsigned int byteOffsetToNormal = offsetof(sVertex_p4t4n4, Normal);
-	unsigned int byteOffsetToUVCoords = offsetof(sVertex_p4t4n4, TexUVx2);
+	unsigned int bytesInOneVertex = sizeof(sVertex_p4t4n4b4);
+	unsigned int byteOffsetToPosition = offsetof(sVertex_p4t4n4b4, Pos);
+	unsigned int byteOffsetToNormal = offsetof(sVertex_p4t4n4b4, Normal);
+	unsigned int byteOffsetToUVCoords = offsetof(sVertex_p4t4n4b4, TexUVx2);
+	unsigned int byteOffsetToBoneIds = offsetof(sVertex_p4t4n4b4, BoneIds);
 
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToPosition);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToUVCoords);
 	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToNormal);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToBoneIds);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferId);
 

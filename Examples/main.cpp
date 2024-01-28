@@ -27,6 +27,11 @@ void updateCallback() {
     g_Engine.Update();
 }
 
+void windowResizeCallback(GLFWwindow* window, int width, int height)
+{
+    g_Engine.Resize(width, height);
+}
+
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     g_Engine.MouseMotion(xpos, ypos);
 }
@@ -52,6 +57,7 @@ int main() {
     // Set callback functions
     glfwSetKeyCallback(window, keyCallback);
     glfwSetCursorPosCallback(window, mouseCallback);
+    glfwSetWindowSizeCallback(window, windowResizeCallback);
 
     // Make the window's context current
     glfwMakeContextCurrent(window);

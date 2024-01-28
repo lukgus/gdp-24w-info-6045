@@ -18,10 +18,19 @@ public:
 	void Pause();
 	void Resume();
 	inline bool IsPaused() const { return m_IsPaused; }
+	inline ShaderProgram* GetShaderProgram(int id) const {
+		return m_ShaderPrograms[id];
+	}
 
 	void Update();
 
 	void GetGameObjects(std::vector<GameObject*>& gameObjects) const;
+
+private:
+	int exampleNumber = 0;
+	void RunExample1();		// Keyframe Animation
+	void RunExample2();		// Hierarchy Animation
+	void RunExample3();		// Bone Animation
 
 	bool m_IsPaused = false;
 
