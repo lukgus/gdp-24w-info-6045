@@ -15,8 +15,8 @@ struct PositionKeyFrame
 {
 	PositionKeyFrame(const glm::vec3& position, double time, EasingType type = EasingType::Linear)
 		: m_Position(position)
-		, m_Time(time)
 		, n_EaseType(type)
+		, m_Time(time)
 	{ }
 	glm::vec3 m_Position;
 	EasingType n_EaseType;
@@ -27,8 +27,8 @@ struct ScaleKeyFrame
 {
 	ScaleKeyFrame(const glm::vec3& scale, double time, EasingType type = EasingType::Linear)
 		: m_Scale(scale)
-		, m_Time(time)
 		, n_EaseType(type)
+		, m_Time(time)
 	{ }
 	glm::vec3 m_Scale;
 	EasingType n_EaseType;
@@ -39,8 +39,8 @@ struct RotationKeyFrame
 {
 	RotationKeyFrame(const glm::quat& rotation, double time, EasingType type = EasingType::Linear)
 		: m_Rotation(rotation)
-		, m_Time(time)
 		, n_EaseType(type)
+		, m_Time(time)
 	{ }
 	glm::quat m_Rotation;
 	EasingType n_EaseType;

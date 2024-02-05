@@ -15,6 +15,8 @@ public:
 	ShaderProgram(const char* vertexFilepath, const char* fragmentFilepath);
 	~ShaderProgram();
 
+	const int NUM_BONES = 50;
+
 	std::string name;
 	Shader vertexShader;
 	Shader fragmentShader;
@@ -24,6 +26,6 @@ public:
 	GLuint ViewMatrixUL;
 	GLuint ModelMatrixUL;
 	GLuint RotationMatrixUL;
-	GLuint BoneMatricesUL[5];
+	GLuint BoneMatricesUL[50];
 };
 

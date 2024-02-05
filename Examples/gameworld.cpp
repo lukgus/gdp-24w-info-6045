@@ -18,16 +18,22 @@ void GameWorld::StartUp()
 	ShaderProgram* simpleShader = new ShaderProgram(vertexFilepath, fragmentFilepath);
 	m_ShaderPrograms.push_back(simpleShader);
 
-	Model* model1 = new Model("assets/models/cone.obj");
-	Model* model2 = new Model("assets/models/cone-pivot-bottom.obj");
-	Model* model3 = new Model("assets/models/cone-pivot-bottom-subdivided.obj");
-	m_Models.push_back(model1);
-	m_Models.push_back(model2);
-	m_Models.push_back(model3);
+	//Model* model1 = new Model("assets/models/cone.obj");
+	//Model* model2 = new Model("assets/models/cone-pivot-bottom.obj");
+	//Model* model3 = new Model("assets/models/cone-pivot-bottom-subdivided.obj");
+	//Model* model4 = new Model("assets/models/cone-subdivided-oriented-boned.fbx");
+	Model* model5 = new Model("assets/models/Adventurer Aland@Idle.FBX");
+	//Model* model4 = new Model("assets/models/Adventurer Aland@Idle.FBX");
+	//m_Models.push_back(model1);
+	//m_Models.push_back(model2);
+	//m_Models.push_back(model3);
+	//m_Models.push_back(model4);
+	m_Models.push_back(model5);
 
 	// RunExample1();		// KeyFrame Animation
 	// RunExample2();		// Hierarchy Animation
-	 RunExample3();		// Bone Animation with Shader
+	 //RunExample3();		// Bone Animation with Shader
+	 RunExample4();		// Bone Animation with Shader
 }
 
 void GameWorld::Shutdown()
@@ -69,14 +75,13 @@ void GameWorld::Update()
 	{
 		UpdateAnimationTimes(gameObject, val);
 	}
-
-	glm::mat4 boneMatrices[5];
-	for (int i = 0; i < 5; ++i)
-	{
-		boneMatrices[i] = glm::mat4(1.f);
-	}
 	if (exampleNumber == 3)
 	{
+		glm::mat4 boneMatrices[5];
+		for (int i = 0; i < 5; ++i)
+		{
+			boneMatrices[i] = glm::mat4(1.f);
+		}
 
 		// Calculate bone matrices for Example3
 		GameObject* rootAnimationGameObject = m_GameObjects[0];
@@ -96,15 +101,32 @@ void GameWorld::Update()
 			rootAnimationGameObject = rootAnimationGameObject->m_Children.size() > 0 ? rootAnimationGameObject->m_Children[0] : nullptr;
 		}
 
+		for (int i = 0; i < 5; ++i)
+		{
+			ShaderProgram* shader = m_ShaderPrograms[0];
+			glUseProgram(shader->id);
+			glUniformMatrix4fv(shader->BoneMatricesUL[i], 1, GL_FALSE, glm::value_ptr(boneMatrices[i]));
+		}
+
 		// We will move this next class. just to see the example working today:
 		// Send the bone matrices data to the shader here.
 	}
-
-	for (int i = 0; i < 5; ++i)
+	if (exampleNumber == 4)
 	{
-		ShaderProgram* shader = m_ShaderPrograms[0];
-		glUseProgram(shader->id);
-		glUniformMatrix4fv(shader->BoneMatricesUL[i], 1, GL_FALSE, glm::value_ptr(boneMatrices[i]));
+
+		glm::mat4 boneMatrices[50];
+		for (int i = 0; i < 5; ++i)
+		{
+			boneMatrices[i] = glm::mat4(1.f);
+		}
+
+
+		for (int i = 0; i < 50; ++i)
+		{
+			ShaderProgram* shader = m_ShaderPrograms[0];
+			glUseProgram(shader->id);
+			glUniformMatrix4fv(shader->BoneMatricesUL[i], 1, GL_FALSE, glm::value_ptr(boneMatrices[i]));
+		}
 	}
 	// Looking for a value 0 to 1,(from start to finish)
 	// distance = 5 - -5 = 10
@@ -179,7 +201,7 @@ void GameWorld::RunExample1()
 void GameWorld::RunExample2()
 {
 	const float coneHeight = 2.f;
-	Model* coneModel = m_Models[1];
+	Model* coneModel = m_Models[3];
 	Animation* animation = new Animation();
 	animation->m_PositionKeyFrames.push_back(PositionKeyFrame(glm::vec3(0.0f, coneHeight, 0.f), 0.0));
 	animation->m_RotationKeyFrames.push_back(RotationKeyFrame(glm::quat(1.0f, 0.f, 0.f, 0.f), 0.0));
@@ -226,7 +248,7 @@ void GameWorld::RunExample3()
 {
 	exampleNumber = 3;
 	const float coneHeight = 2.f;
-	Model* coneModel = m_Models[1];
+	Model* coneModel = m_Models[0];
 	Animation* animation = new Animation();
 	animation->m_PositionKeyFrames.push_back(PositionKeyFrame(glm::vec3(0.0f, 0.f, 0.f), 0.0));
 	animation->m_PositionKeyFrames.push_back(PositionKeyFrame(glm::vec3(1.0f, 0.f, 0.f), 1.0));
@@ -239,6 +261,7 @@ void GameWorld::RunExample3()
 	//animation->m_RotationKeyFrames.push_back(RotationKeyFrame(glm::quat(1.0f, 0.f, 0.f, 0.f), 4.0));
 	animation->m_Time = 0.0;
 
+	// This builds our bone hierarchy.
 	GameObject* goA = new GameObject();
 	GameObject* goB = new GameObject();
 	GameObject* goC = new GameObject();
@@ -253,26 +276,26 @@ void GameWorld::RunExample3()
 	m_GameObjects.push_back(goA);
 
 	goB->m_Model = coneModel;
-	goB->m_Position.y = coneHeight;
+	goB->m_Position.y = coneHeight;	// translation offset
 	goB->m_Animation = animation;
 	goB->m_ShaderProgram = m_ShaderPrograms[0];
 	//m_GameObjects.push_back(goB);
 
 	goC->m_Model = coneModel;
-	goC->m_Position.y = coneHeight;
+	goC->m_Position.y = coneHeight;	// translation offset
 	goC->m_Animation = animation;
 	goC->m_ShaderProgram = m_ShaderPrograms[0];
 	//m_GameObjects.push_back(goC);
 
 	goD->m_Model = coneModel;
 	goD->m_ShaderProgram = m_ShaderPrograms[0];
-	goD->m_Position.y = coneHeight;
+	goD->m_Position.y = coneHeight;	// translation offset
 	goD->m_Animation = animation;
 	//m_GameObjects.push_back(goD);
 
 	goE->m_Model = coneModel;
 	goE->m_ShaderProgram = m_ShaderPrograms[0];
-	goE->m_Position.y = coneHeight;
+	goE->m_Position.y = coneHeight;	// translation offset
 	goE->m_Animation = animation;
 	//m_GameObjects.push_back(goE);
 
@@ -281,10 +304,21 @@ void GameWorld::RunExample3()
 	goC->m_Children.push_back(goD);
 	goD->m_Children.push_back(goE);
 
-	Model* bigConeModel = m_Models[2];
+	Model* bigConeModel = m_Models[0];
 	GameObject* goBigCone = new GameObject();
 
 	goBigCone->m_Model = bigConeModel;
 	goBigCone->m_ShaderProgram = m_ShaderPrograms[0];
 	m_GameObjects.push_back(goBigCone);
+}
+
+void GameWorld::RunExample4()
+{
+	exampleNumber = 4;
+
+	GameObject* aland = new GameObject();
+	aland->m_Model = m_Models[0];
+	aland->m_ShaderProgram = m_ShaderPrograms[0];
+	m_GameObjects.push_back(aland);
+
 }

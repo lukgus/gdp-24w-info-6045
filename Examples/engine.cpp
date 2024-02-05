@@ -7,7 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include "gameobject.h"
-#include "Shader.h"
+#include <Shader.h>
 
 Engine::Engine(const char* windowTitle, int width, int height)
 {
@@ -82,6 +82,11 @@ void Engine::Update()
 		std::vector<GameObject*> gameObjects;
 		m_World->GetGameObjects(gameObjects);
 
+		for (int i = 0; i < gameObjects.size(); ++i)
+		{
+			gameObjects[i]->m_Rotation = glm::rotate(gameObjects[i]->m_Rotation, 0.002f, glm::vec3(0.f, 1.f, 0.f));
+		}
+
 		m_AnimationSystem.Update(gameObjects);
 	}
 }
@@ -98,8 +103,8 @@ void Engine::Render() const
 		10000.0f
 	);
 	glm::mat4 viewMatrix = glm::lookAt(
-		glm::vec3(0.0f, 1.0f, 20.0f),
-		glm::vec3(0.0f, 0.0f, -1.0f),
+		glm::vec3(0.0f, 1.0f, 800.0f),
+		glm::vec3(0.0f, 2.0f, -1.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
 
@@ -139,6 +144,11 @@ void Engine::RenderGameObject(GameObject* gameObject, const glm::mat4& parentMod
 	glUniformMatrix4fv(shader->ModelMatrixUL, 1, GL_FALSE, glm::value_ptr(ModelMatrix));
 
 	// Ask OpenGL to render our object
+	for (int i = 0; i < gameObject->m_Model->LocalBoneTransformations.size(); ++i)
+	{
+		glUniformMatrix4fv(shader->BoneMatricesUL[i], 1, GL_FALSE, glm::value_ptr(gameObject->m_Model->LocalBoneTransformations[i]));
+	}
+
 	glBindVertexArray(gameObject->m_Model->Vbo);
 	glDrawElements(GL_TRIANGLES, gameObject->m_Model->NumTriangles * 3, GL_UNSIGNED_INT, (GLvoid*)0);
 

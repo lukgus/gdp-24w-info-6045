@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 
+class aiNode;
+
 typedef struct sFloat4 {
 	float x, y, z, w;
 } sFloat4;
@@ -57,9 +59,17 @@ public:
 	Model(const std::vector<glm::vec3>& Vertices, const std::vector<int>& triangles);
 	~Model();
 
+	void GenerateBoneHierarchy(aiNode* node, const int depth = 0);
+
 	GLuint Vbo;
 	GLuint VertexBufferId;
 	GLuint IndexBufferId;
+
+	// using std::string screams performance issues. This will just be used for learning
+	// how to setup an animation and see how everything is connected. We can replace this
+	// in the future once we have everything working.
+	std::vector<glm::mat4> LocalBoneTransformations;
+	std::map<std::string, int> BoneNameToIdMap;
 
 	std::vector<glm::vec3> Vertices;
 	std::vector<int> triangles;	// 1,2,3

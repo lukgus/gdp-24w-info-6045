@@ -26,6 +26,7 @@ public:
 	glm::vec3 m_Scale = glm::vec3(1.f);
 	glm::quat m_Rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
 	bool m_DirtyTransform;
+	std::vector<glm::mat4> m_BoneTransformations;
 	// glm::mat4 m_WorldModelMatrix;
 	// glm::mat4 m_LocalModelMatrix;
 

@@ -1,6 +1,7 @@
 #include <shader.h>
 
 #include <fstream>
+#include <sstream>
 
 std::string LoadShaderFromFile(std::string filename)
 {
@@ -67,13 +68,14 @@ ShaderProgram::ShaderProgram(const char* vertexFilepath, const char* fragmentFil
 	ViewMatrixUL = glGetUniformLocation(id, "ViewMatrix");
 	ProjectionMatrixUL = glGetUniformLocation(id, "ProjectionMatrix");
 
-	BoneMatricesUL[0] = glGetUniformLocation(id, "BoneMatrices[0]");
-	BoneMatricesUL[1] = glGetUniformLocation(id, "BoneMatrices[1]");
-	BoneMatricesUL[2] = glGetUniformLocation(id, "BoneMatrices[2]");
-	BoneMatricesUL[3] = glGetUniformLocation(id, "BoneMatrices[3]");
-	BoneMatricesUL[4] = glGetUniformLocation(id, "BoneMatrices[4]");
-	// You can use a for loop with a string stream to generate the string of the
-	// BoneMatrices[#]. 
+	for (int i = 0; i < 50; ++i)
+	{
+		// You can use a for loop with a string stream to generate the string of the
+		// BoneMatrices[#]. 
+		std::stringstream boneUL;
+		boneUL << "BoneMatrices[" << i << "]";
+		BoneMatricesUL[i] = glGetUniformLocation(id, boneUL.str().c_str());
+	}
 }
 
 ShaderProgram::~ShaderProgram() {

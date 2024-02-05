@@ -31,6 +31,7 @@ private:
 	void RunExample1();		// Keyframe Animation
 	void RunExample2();		// Hierarchy Animation
 	void RunExample3();		// Bone Animation
+	void RunExample4();		// Character Animation
 
 	bool m_IsPaused = false;
 
