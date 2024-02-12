@@ -10,6 +10,21 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+void AssimpToGLM(const aiMatrix4x4& a, glm::mat4& g)
+{
+	g[0][0] = a.a1; g[0][1] = a.b1; g[0][2] = a.c1; g[0][3] = a.d1;
+	g[1][0] = a.a2; g[1][1] = a.b2; g[1][2] = a.c2; g[1][3] = a.d2;
+	g[2][0] = a.a3; g[2][1] = a.b3; g[2][2] = a.c3; g[2][3] = a.d3;
+	g[3][0] = a.a4; g[3][1] = a.b4; g[3][2] = a.c4; g[3][3] = a.d4;
+}
+
+Node* CreateAnimNode(aiNode* node)
+{
+	Node* newNode = new Node(node->mName.C_Str());
+	AssimpToGLM(node->mTransformation, newNode->Transformation);
+	return newNode;
+}
+
 Assimp::Importer m_AssimpImporter;
 
 Model::Model()
@@ -115,18 +130,11 @@ struct BoneWeightInfo {
 };
 #define PRINT_SPACES(x) {int s = x; while(s--> 0) printf(" ");}
 
-void AssimpToGLM(const aiMatrix4x4& a, glm::mat4& g)
+Node* Model::GenerateBoneHierarchy(aiNode* assimpNode, const int depth)
 {
-	g[0][0] = a.a1; g[0][1] = a.b1; g[0][2] = a.c1; g[0][3] = a.d1;
-	g[1][0] = a.a2; g[1][1] = a.b2; g[1][2] = a.c2; g[1][3] = a.d2;
-	g[2][0] = a.a3; g[2][1] = a.b3; g[2][2] = a.c3; g[2][3] = a.d3;
-	g[3][0] = a.a4; g[3][1] = a.b4; g[3][2] = a.c4; g[3][3] = a.d4;
-}
-
-void Model::GenerateBoneHierarchy(aiNode* node, const int depth)
-{
-	PRINT_SPACES(depth); printf("%s\n", node->mName.C_Str());
-	aiMatrix4x4& transformation = node->mTransformation;
+	Node* node = CreateAnimNode(assimpNode);
+	PRINT_SPACES(depth); printf("%s\n", assimpNode->mName.C_Str());
+	aiMatrix4x4& transformation = assimpNode->mTransformation;
 	aiVector3D position;
 	aiQuaternion rotation;
 	aiVector3D scaling;
@@ -145,22 +153,56 @@ void Model::GenerateBoneHierarchy(aiNode* node, const int depth)
 
 	//glm::mat4 ModelMatrix = TranslationMatrix * RotationMatrix * ScaleMatrix;
 
-	BoneNameToIdMap.insert(std::pair<std::string, int>(node->mName.C_Str(), LocalBoneTransformations.size()));
-	LocalBoneTransformations.emplace_back(glmMatrix);
+	NodeNameToIdMap.insert(std::pair<std::string, int>(assimpNode->mName.C_Str(), NodeHeirarchyTransformations.size()));
+	NodeHeirarchyTransformations.emplace_back(glmMatrix);
 
-	for (int i = 0; i < node->mNumChildren; ++i)
+	for (int i = 0; i < assimpNode->mNumChildren; ++i)
 	{
-		GenerateBoneHierarchy(node->mChildren[i], depth + 1);
+		node->Children.emplace_back(GenerateBoneHierarchy(assimpNode->mChildren[i], depth + 1));
 	}
+	return node;
 }
 
 Model::Model(const char* filepath) {
-	const aiScene* scene = m_AssimpImporter.ReadFile(filepath, aiProcess_GenNormals);
+	scene = (aiScene*)m_AssimpImporter.ReadFile(filepath, aiProcess_GenNormals);
 
 	if (scene == 0 || !scene->HasMeshes())
 		return;
 
 	aiMesh* mesh = scene->mMeshes[0];
+
+	if (scene->mNumAnimations > 0)
+	{
+		CharacterAnimation* characterAnimation = new CharacterAnimation();
+		aiAnimation* animation = scene->mAnimations[0];
+
+		characterAnimation->Name = animation->mName.C_Str();
+		characterAnimation->Duration = animation->mDuration;
+		characterAnimation->TicksPerSecond = animation->mTicksPerSecond;
+
+		for (int i = 0; i < animation->mNumChannels; ++i)
+		{
+			aiNodeAnim* assimpNodeAnim = animation->mChannels[i];
+			NodeAnim* nodeAnim = new NodeAnim(assimpNodeAnim->mNodeName.C_Str());
+			for (int i = 0; i < assimpNodeAnim->mNumPositionKeys; ++i)
+			{
+				aiVectorKey& p = assimpNodeAnim->mPositionKeys[i];
+				nodeAnim->m_PositionKeyFrames.emplace_back(PositionKeyFrame(glm::vec3(p.mValue.x, p.mValue.y, p.mValue.z), p.mTime));
+			}
+			for (int i = 0; i < assimpNodeAnim->mNumScalingKeys; ++i)
+			{
+				aiVectorKey& s = assimpNodeAnim->mScalingKeys[i];
+				nodeAnim->m_ScaleKeyFrames.emplace_back(ScaleKeyFrame(glm::vec3(s.mValue.x, s.mValue.y, s.mValue.z), s.mTime));
+			}
+			for (int i = 0; i < assimpNodeAnim->mNumRotationKeys; ++i)
+			{
+				aiQuatKey& q = assimpNodeAnim->mRotationKeys[i];
+				nodeAnim->m_RotationKeyFrames.emplace_back(RotationKeyFrame(glm::quat(q.mValue.w, q.mValue.x, q.mValue.y, q.mValue.z), q.mTime));
+			}
+			characterAnimation->Channels.emplace_back(nodeAnim);
+		}
+		CharacterAnimations.push_back(characterAnimation);
+	}
 
 	// std::map<int, BoneWeightInfo> boneMap;
 	//				map			unorderd_map
@@ -173,8 +215,8 @@ Model::Model(const char* filepath) {
 
 	// Create our bone hierarchy
 	// Maybe move this to a recursive function
-	aiNode* root = scene->mRootNode;
-	GenerateBoneHierarchy(root);
+	RootNode = GenerateBoneHierarchy(scene->mRootNode);
+	GlobalInverseTransformation = glm::inverse(RootNode->Transformation);
 
 
 	std::vector<BoneWeightInfo> boneWeights;
@@ -186,7 +228,14 @@ Model::Model(const char* filepath) {
 		for (unsigned int boneIdx = 0; boneIdx < numBones; ++boneIdx)
 		{
 			aiBone* bone = mesh->mBones[boneIdx];
+
 			std::string name(bone->mName.C_Str(), bone->mName.length); //	'\0'
+			BoneNameToIdMap.insert(std::pair<std::string, int>(name, BoneInfoVec.size()));
+
+			// Store the offset matrices
+			BoneInfo info;
+			AssimpToGLM(bone->mOffsetMatrix, info.BoneOffset);
+			BoneInfoVec.emplace_back(info);
 			printf("\n-----------\n");
 			printf("Bone: %s\n", name.c_str());
 			printf("Number of weights: %d\n", bone->mNumWeights);

@@ -1,14 +1,17 @@
 #include "animationsystem.h"
 
+#include <assimp/scene.h>
+
 #include <glm/gtx/easing.hpp>
 
 void AnimationSystem::Update(const std::vector<GameObject*>& gameObjects) const
 {
 	for (GameObject* gameObject : gameObjects)
 	{
-		if (gameObject->m_Animation != nullptr)
+		Character* character = dynamic_cast<Character*>(gameObject);
+		if (character != nullptr && character->m_Animation != nullptr)
 		{
-			Animation* animation = gameObject->m_Animation;
+			Animation* animation = character->m_Animation;
 
 			double time = animation->m_Time;
 
@@ -142,4 +145,64 @@ void AnimationSystem::Update(const std::vector<GameObject*>& gameObjects) const
 		Update(gameObject->m_Children);
 	}
 
+}
+
+
+void AnimationSystem::UpdateCharacter(const std::vector<GameObject*>& gameObjects) const
+{
+	for (int i = 0; i < gameObjects.size(); ++i)
+	{
+		Character* character = dynamic_cast<Character*>(gameObjects[i]);
+		if (character != nullptr)
+		{
+			Model* model = character->m_Model;
+
+			glm::mat4 origin = glm::mat4(1.0f);
+			glm::mat4 rootTransformation = glm::mat4(1.f);
+
+			CalculateMatrices(model, model->CharacterAnimations[0], model->RootNode, rootTransformation, 0.f);
+		}
+	}
+}
+
+void AnimationSystem::CalculateMatrices(Model* model, CharacterAnimation* animation, Node* node, const glm::mat4& parentTransformationMatrix, double keyFrameTime) const
+{
+	std::string nodeName(node->Name);		// use this for lookups, bones, animation nodes
+
+	glm::mat4 transformationMatrix = node->Transformation;
+
+	// Project #2
+	// Animation calculation
+	// AnimationData* data = FindAnimationDat(nodeName);
+	//if (data != nullptr)
+	{
+		// glm::vec3 position = GetAnimationPosition(data, keyFrameTime);	/// POSITION update in previous function
+		// glm::vec3 scale = GetAnimationPosition(data, keyFrameTime);		/// SCALE from your project
+		// glm::vec3 rotation = GetAnimationPosition(data, keyFrameTime);	/// ROTATION update from previous function
+
+		// calculate the matrices
+		// glm::mat4 translationMatrix = glm::translate(glm::mat4(1.f), position);
+		// glm::mat4 rotationMatrix = glm::mat4_cast(rotation);
+		// glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.f), scale);
+
+		// transformationMatrix = translationMatrix * rotationMatrix * scaleMatrix
+	}
+
+	// Calculate the global transformation
+	glm::mat4 globalTransformation = parentTransformationMatrix * transformationMatrix;
+
+	// If there is a bone associated with this name, assign the global transformation
+	auto boneMapIt = model->BoneNameToIdMap.find(nodeName);
+	if (boneMapIt != model->BoneNameToIdMap.end())
+	{
+		BoneInfo& boneInfo = model->BoneInfoVec[boneMapIt->second];
+		boneInfo.FinalTransformation = model->GlobalInverseTransformation * globalTransformation * boneInfo.BoneOffset;
+		boneInfo.GlobalTransformation = globalTransformation;
+	}
+
+	// Calculate all children
+	for (int i = 0; i < node->Children.size(); ++i)
+	{
+		CalculateMatrices(model, animation, node->Children[i], globalTransformation, keyFrameTime);
+	}
 }

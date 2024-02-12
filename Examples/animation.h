@@ -13,7 +13,7 @@ enum class EasingType
 
 struct PositionKeyFrame
 {
-	PositionKeyFrame(const glm::vec3& position, double time, EasingType type = EasingType::Linear)
+	PositionKeyFrame(const glm::vec3& position, double time = 0.0, EasingType type = EasingType::Linear)
 		: m_Position(position)
 		, n_EaseType(type)
 		, m_Time(time)
@@ -25,7 +25,7 @@ struct PositionKeyFrame
 
 struct ScaleKeyFrame
 {
-	ScaleKeyFrame(const glm::vec3& scale, double time, EasingType type = EasingType::Linear)
+	ScaleKeyFrame(const glm::vec3& scale, double time = 0.0, EasingType type = EasingType::Linear)
 		: m_Scale(scale)
 		, n_EaseType(type)
 		, m_Time(time)
@@ -37,7 +37,7 @@ struct ScaleKeyFrame
 
 struct RotationKeyFrame
 {
-	RotationKeyFrame(const glm::quat& rotation, double time, EasingType type = EasingType::Linear)
+	RotationKeyFrame(const glm::quat& rotation, double time = 0.0, EasingType type = EasingType::Linear)
 		: m_Rotation(rotation)
 		, n_EaseType(type)
 		, m_Time(time)

@@ -8,11 +8,10 @@
 #include "model.h"
 #include "animation.h"
 
-class GameObject
+struct GameObject
 {
-public:
 	GameObject();
-	~GameObject();
+	virtual ~GameObject();
 
 	unsigned long long m_Id;
 	const char* m_Name;
@@ -26,12 +25,14 @@ public:
 	glm::vec3 m_Scale = glm::vec3(1.f);
 	glm::quat m_Rotation = glm::quat(1.f, 0.f, 0.f, 0.f);
 	bool m_DirtyTransform;
-	std::vector<glm::mat4> m_BoneTransformations;
-	// glm::mat4 m_WorldModelMatrix;
-	// glm::mat4 m_LocalModelMatrix;
-
-	Animation* m_Animation;
 
 	std::vector<GameObject*> m_Children;
 	std::vector<Component*> m_Components;
+};
+
+struct Character : public GameObject
+{
+	~Character() override { }
+	std::vector<glm::mat4> m_BoneTransformations;
+	Animation* m_Animation;
 };

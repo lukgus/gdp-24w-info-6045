@@ -23,6 +23,7 @@ void GameWorld::StartUp()
 	//Model* model3 = new Model("assets/models/cone-pivot-bottom-subdivided.obj");
 	//Model* model4 = new Model("assets/models/cone-subdivided-oriented-boned.fbx");
 	Model* model5 = new Model("assets/models/Adventurer Aland@Idle.FBX");
+	m_BoneDebugModel = new Model("assets/models/cone.obj");
 	//Model* model4 = new Model("assets/models/Adventurer Aland@Idle.FBX");
 	//m_Models.push_back(model1);
 	//m_Models.push_back(model2);
@@ -50,8 +51,10 @@ void GameWorld::Resume()
 	m_IsPaused = false;
 }
 
-void UpdateAnimationTimes(GameObject* gameObject, float time)
+void UpdateAnimationTimes(Character* gameObject, float time)
 {
+	if (gameObject == nullptr) return;
+
 	if (gameObject->m_Animation != nullptr)
 	{
 		gameObject->m_Animation->m_Time = time;
@@ -59,7 +62,7 @@ void UpdateAnimationTimes(GameObject* gameObject, float time)
 
 	for (GameObject* childObject : gameObject->m_Children)
 	{
-		UpdateAnimationTimes(childObject, time);
+		UpdateAnimationTimes(dynamic_cast<Character*>(childObject), time);
 	}
 }
 
@@ -73,7 +76,7 @@ void GameWorld::Update()
 
 	for (GameObject* gameObject : m_GameObjects)
 	{
-		UpdateAnimationTimes(gameObject, val);
+		UpdateAnimationTimes(dynamic_cast<Character*>(gameObject), val);
 	}
 	if (exampleNumber == 3)
 	{
@@ -158,7 +161,7 @@ void GameWorld::RunExample1()
 	animation->m_RotationKeyFrames.push_back(RotationKeyFrame(glm::quat(0.0f, 0.f, 0.f, 1.f), 3.0));
 	animation->m_RotationKeyFrames.push_back(RotationKeyFrame(glm::quat(1.0f, 0.f, 0.f, 0.f), 4.0));
 
-	GameObject* goA = new GameObject();
+	Character* goA = new Character();
 	goA->m_Model = m_Models[0];
 	goA->m_ShaderProgram = m_ShaderPrograms[0];
 	goA->m_Animation = animation;
@@ -211,10 +214,10 @@ void GameWorld::RunExample2()
 	animation->m_RotationKeyFrames.push_back(RotationKeyFrame(glm::quat(1.0f, 0.f, 0.f, 0.f), 4.0));
 	animation->m_Time = 0.0;
 
-	GameObject* goA = new GameObject();
-	GameObject* goB = new GameObject();
-	GameObject* goC = new GameObject();
-	GameObject* goD = new GameObject();
+	Character* goA = new Character();
+	Character* goB = new Character();
+	Character* goC = new Character();
+	Character* goD = new Character();
 
 	goA->m_Model = coneModel;
 	goA->m_ShaderProgram = m_ShaderPrograms[0];
@@ -262,11 +265,11 @@ void GameWorld::RunExample3()
 	animation->m_Time = 0.0;
 
 	// This builds our bone hierarchy.
-	GameObject* goA = new GameObject();
-	GameObject* goB = new GameObject();
-	GameObject* goC = new GameObject();
-	GameObject* goD = new GameObject();
-	GameObject* goE = new GameObject();
+	Character* goA = new Character();
+	Character* goB = new Character();
+	Character* goC = new Character();
+	Character* goD = new Character();
+	Character* goE = new Character();
 
 	goA->m_Visible = false;
 
@@ -316,7 +319,7 @@ void GameWorld::RunExample4()
 {
 	exampleNumber = 4;
 
-	GameObject* aland = new GameObject();
+	Character* aland = new Character();
 	aland->m_Model = m_Models[0];
 	aland->m_ShaderProgram = m_ShaderPrograms[0];
 	m_GameObjects.push_back(aland);

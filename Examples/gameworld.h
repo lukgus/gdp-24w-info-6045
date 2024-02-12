@@ -25,6 +25,9 @@ public:
 	void Update();
 
 	void GetGameObjects(std::vector<GameObject*>& gameObjects) const;
+	Model* GetBoneDebugModel() const {
+		return m_BoneDebugModel;
+	}
 
 private:
 	int exampleNumber = 0;
@@ -34,6 +37,8 @@ private:
 	void RunExample4();		// Character Animation
 
 	bool m_IsPaused = false;
+
+	Model* m_BoneDebugModel = nullptr;
 
 	std::vector<Model*> m_Models;
 	std::vector<ShaderProgram*> m_ShaderPrograms;

@@ -88,12 +88,14 @@ void Engine::Update()
 		}
 
 		m_AnimationSystem.Update(gameObjects);
+		m_AnimationSystem.UpdateCharacter(gameObjects);
 	}
 }
 
 void Engine::Render() const
 {
 	if (!m_Initialized)	{ return; }
+	glClearColor(0.4f, 0.4f, 0.4f, 1.f);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
 	glm::mat4 projectionMatrix = glm::perspective(
@@ -103,8 +105,8 @@ void Engine::Render() const
 		10000.0f
 	);
 	glm::mat4 viewMatrix = glm::lookAt(
-		glm::vec3(0.0f, 1.0f, 800.0f),
-		glm::vec3(0.0f, 2.0f, -1.0f),
+		glm::vec3(0.0f, 100.0f, 300.0f),
+		glm::vec3(0.0f, 100.0f, -1.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f)
 	);
 
@@ -142,20 +144,36 @@ void Engine::RenderGameObject(GameObject* gameObject, const glm::mat4& parentMod
 
 	// Send ModelMatrix to our shader
 	glUniformMatrix4fv(shader->ModelMatrixUL, 1, GL_FALSE, glm::value_ptr(ModelMatrix));
-
+	glUniform1i(shader->UseBonesUL, true);
 	// Ask OpenGL to render our object
-	for (int i = 0; i < gameObject->m_Model->LocalBoneTransformations.size(); ++i)
+	for (int i = 0; i < gameObject->m_Model->BoneInfoVec.size(); ++i)
 	{
-		glUniformMatrix4fv(shader->BoneMatricesUL[i], 1, GL_FALSE, glm::value_ptr(gameObject->m_Model->LocalBoneTransformations[i]));
+		glUniformMatrix4fv(shader->BoneMatricesUL[i], 1, GL_FALSE, glm::value_ptr(gameObject->m_Model->BoneInfoVec[i].FinalTransformation));
 	}
 
 	glBindVertexArray(gameObject->m_Model->Vbo);
 	glDrawElements(GL_TRIANGLES, gameObject->m_Model->NumTriangles * 3, GL_UNSIGNED_INT, (GLvoid*)0);
 
+	// We can render all of our bone to the screen here:
+	glUniform1i(shader->UseBonesUL, false);
+	for (int i = 0; i < gameObject->m_Model->BoneInfoVec.size(); ++i)
+	{
+		glUniformMatrix4fv(shader->ModelMatrixUL, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));// gameObject->m_Model->BoneInfoVec[i].GlobalTransformation));
+		RenderBoneDebug();
+	}
+
 	for (GameObject* child : gameObject->m_Children)
 	{
 		RenderGameObject(child, ModelMatrix);
 	}
+}
+
+void Engine::RenderBoneDebug() const
+{
+	const Model* boneDebugModel = m_World->GetBoneDebugModel();
+	glBindVertexArray(boneDebugModel->Vbo);
+	glDrawElements(GL_TRIANGLES, boneDebugModel->NumTriangles * 3, GL_UNSIGNED_INT, (GLvoid*)0);
+
 }
 
 void Engine::KeyPress(unsigned char key)

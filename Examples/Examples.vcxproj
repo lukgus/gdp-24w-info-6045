@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="animationsystem.cpp" />
     <ClCompile Include="engine.cpp" />
+    <ClCompile Include="FBXLoader.cpp" />
     <ClCompile Include="gameobject.cpp" />
     <ClCompile Include="gameworld.cpp" />
     <ClCompile Include="main.cpp" />
@@ -155,8 +156,10 @@
   <ItemGroup>
     <ClInclude Include="animation.h" />
     <ClInclude Include="animationsystem.h" />
+    <ClInclude Include="common.h" />
     <ClInclude Include="component.h" />
     <ClInclude Include="engine.h" />
+    <ClInclude Include="FBXLoader.h" />
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="gamescript.h" />
     <ClInclude Include="gameworld.h" />

@@ -67,6 +67,7 @@ ShaderProgram::ShaderProgram(const char* vertexFilepath, const char* fragmentFil
 	ModelMatrixUL = glGetUniformLocation(id, "ModelMatrix");
 	ViewMatrixUL = glGetUniformLocation(id, "ViewMatrix");
 	ProjectionMatrixUL = glGetUniformLocation(id, "ProjectionMatrix");
+	UseBonesUL = glGetUniformLocation(id, "UseBones");
 
 	for (int i = 0; i < 50; ++i)
 	{

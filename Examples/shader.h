@@ -27,5 +27,6 @@ public:
 	GLuint ModelMatrixUL;
 	GLuint RotationMatrixUL;
 	GLuint BoneMatricesUL[50];
+	GLuint UseBonesUL;
 };
 

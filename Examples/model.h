@@ -10,9 +10,12 @@
 #include <glm/glm.hpp>
 // end TODO
 
+#include <assimp/scene.h>
 #include <map>
 #include <string>
 #include <vector>
+
+#include "animation.h"
 
 class aiNode;
 
@@ -50,6 +53,42 @@ typedef struct sVertex_p4t4n4b4w4 {
 	sFloat4 BoneIds;
 } sVertex_p4t4n4b4w4;
 
+struct BoneInfo
+{
+	glm::mat4 BoneOffset;				// Offset from the parent bone/node
+	glm::mat4 FinalTransformation;		// Calculated transformation used for rendering
+	glm::mat4 GlobalTransformation;		// used for the bone hierarchy transformation calculations when animating
+};
+
+// Connection Node for hierarchy
+struct Node
+{
+	Node(const std::string& name) : Name(name) { }
+	std::string Name;
+	glm::mat4 Transformation;
+	std::vector<Node*> Children;
+};
+
+// Animation Node
+struct NodeAnim
+{
+	NodeAnim(const std::string& name) : Name(name) { }
+	std::string Name;
+	std::vector<PositionKeyFrame> m_PositionKeyFrames;
+	std::vector<ScaleKeyFrame> m_ScaleKeyFrames;
+	std::vector<RotationKeyFrame> m_RotationKeyFrames;
+};
+
+struct CharacterAnimation
+{
+	std::string Name;
+	double TicksPerSecond;
+	double Duration;
+	Node* RootNode;
+	std::vector<NodeAnim*> Channels;
+};
+
+void AssimpToGLM(const aiMatrix4x4& a, glm::mat4& g);
 
 class Model {
 public:
@@ -59,7 +98,7 @@ public:
 	Model(const std::vector<glm::vec3>& Vertices, const std::vector<int>& triangles);
 	~Model();
 
-	void GenerateBoneHierarchy(aiNode* node, const int depth = 0);
+	Node* GenerateBoneHierarchy(aiNode* node, const int depth = 0);
 
 	GLuint Vbo;
 	GLuint VertexBufferId;
@@ -68,11 +107,19 @@ public:
 	// using std::string screams performance issues. This will just be used for learning
 	// how to setup an animation and see how everything is connected. We can replace this
 	// in the future once we have everything working.
-	std::vector<glm::mat4> LocalBoneTransformations;
+	std::vector<glm::mat4> NodeHeirarchyTransformations;
+	std::map<std::string, int> NodeNameToIdMap;
+
+	std::vector<BoneInfo> BoneInfoVec;
 	std::map<std::string, int> BoneNameToIdMap;
+	Node* RootNode;
+
+	std::vector<CharacterAnimation*> CharacterAnimations;
+
+	glm::mat4 GlobalInverseTransformation;
 
 	std::vector<glm::vec3> Vertices;
 	std::vector<int> triangles;	// 1,2,3
-
+	aiScene* scene;
 	unsigned int NumTriangles;
 };

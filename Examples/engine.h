@@ -28,6 +28,8 @@ public:
 	void MouseMotion(double x, double y);
 
 private:
+	void RenderBoneDebug() const;
+
 	bool m_Initialized = false;
 	bool m_WorldLoaded = false;
 	GameWorld* m_World;
